@@ -1,7 +1,11 @@
 const { app, BrowserWindow } = require('electron')
+const { exec, execSync } = require('child_process');
+
+let cppProcess;
+let mainWindow;
 
 function createWindow () {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1024,
     height: 600
   })
@@ -44,7 +48,7 @@ function createWindow () {
     return false
   })
 
-  mainWindow.loadFile('manual.html')
+  mainWindow.loadFile('home.html')
 
   //mainWindow.webContents.openDevTools()
 }
@@ -60,3 +64,31 @@ app.whenReady().then(() => {
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 })
+
+function runCppProgram() {
+  if (!cppProcess) {
+    // C++ 프로그램 실행
+    cppProcess = exec('test', (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        return;
+      }
+      console.log(`stdout: ${stdout}`);
+    });
+  } else {
+    // 이미 실행 중인 프로세스가 있으면 종료
+    try {
+      execSync('pkill -f your/cpp/program'); // 프로세스 종료
+    } catch (error) {
+      console.error(`Error killing process: ${error.message}`);
+    } finally {
+      cppProcess = null;
+    }
+  }
+}
+
+module.exports = { runCppProgram };
